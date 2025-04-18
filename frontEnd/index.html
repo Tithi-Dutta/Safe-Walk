@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safe-walk | Women's Safety Navigation</title>
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img id="logo-img" src="./logo/logo.png" alt="Safe-walk Logo">
+        </div>
+        <nav>
+            <div class="hamburger">
+                <div class="line"></div>
+                <div class="line"></div>
+                <div class="line"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#" class="active">Home</a></li>
+                <li><a href="./about.html">About Us</a></li>
+                <li><a href="./contact_us.html">Contact Us</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Safe-walk</h1>
+                <h2>Women's Safety Navigation</h2>
+                <p>Navigate with Confidence. Your Safety, Our Priority.</p>
+                <div class="cta-buttons">
+                    <button id="register-btn" class="btn register">REGISTER</button>
+                    <button id="login-btn" class="btn login">LOG IN</button>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img id="hero-img" src="./logo/Screenshot 2025-04-13 at 6.56.08 PM.png" alt="Women walking safely together">
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for Login -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Log In</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn submit">Log In</button>
+                </div>
+                <p class="form-footer">Don't have an account? <a href="#" id="switch-to-register">Register here</a></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Register -->
+    <div id="register-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Register</h2>
+            <form id="register-form">
+                <div class="form-group">
+                    <label for="register-name">Full Name</label>
+                    <input type="text" id="register-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-email">Email</label>
+                    <input type="email" id="register-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Password</label>
+                    <input type="password" id="register-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-confirm-password">Confirm Password</label>
+                    <input type="password" id="register-confirm-password" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn submit">Register</button>
+                </div>
+                <p class="form-footer">Already have an account? <a href="#" id="switch-to-login">Log in here</a></p>
+            </form>
+        </div>
+    </div>
+
+
+
+    <footer>
+        <p>&copy; 2025 Safe-walk. All rights reserved.</p>
+    </footer>
+
+    <script src="./js/script.js"></script>
+</body>
+</html>
