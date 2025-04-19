@@ -5,9 +5,11 @@ const cors = require('cors');
 const fs = require('fs');
 const https = require('https');
 const accessServ = require('./accessServ');
+const safetyRoutes = require('./safety');
 const authRoutes = require('./registrationAndLogin');
 const bodyParser = require('body-parser');
 const app = express();
+require('dotenv').config();
 
 // Enable CORS with specific settings for HTTPS
 app.use(cors({
@@ -29,11 +31,13 @@ app.get('/api/test', (req, res) => {
 
 // Routes
 app.use('/location', accessServ);
+app.use('/location', safetyRoutes);
 app.use('/auth', authRoutes);  // Add the authentication routes
 
 // HTTPS server with more detailed error logging
 const PORT = 5000;
 const HOST = '0.0.0.0';
+
 
 try {
   // Read certificate files

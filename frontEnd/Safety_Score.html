@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Safety Score Results</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="header">
+    <img src="./logo/logo.png" alt="Safe-Walk Logo" class="logo">
+    <div class="heading">Safety Score</div>
+  </div>
+
+  <div class="info-text" id="location-info">
+    Safety Analysis for: <span id="selected-address"></span>
+  </div>
+
+  <div class="boxes">
+    <div class="box">
+      <div class="circle">
+        <svg width="150" height="150">
+          <circle cx="75" cy="75" r="60" stroke="#eee" stroke-width="15" fill="none" />
+          <circle id="progress1" cx="75" cy="75" r="60" stroke="#1c0033" stroke-width="15" fill="none" stroke-linecap="round" stroke-dasharray="377" stroke-dashoffset="377"/>
+        </svg>
+        <div class="circle-text" id="text1">0/10</div>
+      </div>
+      <div class="label">Overall Safety Score</div>
+    </div>
+
+    <div class="box">
+      <div class="circle">
+        <svg width="150" height="150">
+          <circle cx="75" cy="75" r="60" stroke="#eee" stroke-width="15" fill="none" />
+          <circle id="progress2" cx="75" cy="75" r="60" stroke="#1c0033" stroke-width="15" fill="none" stroke-linecap="round" stroke-dasharray="377" stroke-dashoffset="377"/>
+        </svg>
+        <div class="circle-text" id="text2">0%</div>
+      </div>
+      <div class="label">Police Proximity Score</div>
+    </div>
+  </div>
+
+  <div class="details-section">
+    <div class="details-heading">Safety Analysis Details</div>
+    
+    <div class="detail-item">
+      <div class="detail-label">Distance to nearest police station:</div>
+      <div class="detail-value" id="police-distance">Loading...</div>
+    </div>
+    
+    <div class="detail-item">
+      <div class="detail-label">Number of open places nearby:</div>
+      <div class="detail-value" id="open-places">Loading...</div>
+    </div>
+    
+    <div class="detail-item">
+      <div class="detail-label">Distance to nearest main road:</div>
+      <div class="detail-value" id="road-distance">Loading...</div>
+    </div>
+    
+    <div class="detail-item">
+      <div class="detail-label">Time of day:</div>
+      <div class="detail-value" id="time-of-day">Loading...</div>
+    </div>
+  </div>
+
+  <button id="back-button" class="primary-button" style="max-width: 200px; margin-top: 30px;">Back to Map</button>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get safety data from sessionStorage
+      const safetyData = JSON.parse(sessionStorage.getItem('safetyData'));
+      
+      if (!safetyData) {
+        window.location.href = 'index.html';
+        return;
+      }
+      
+      // Display location info
+      document.getElementById('selected-address').textContent = safetyData.address;
+      
+      // Display safety details
+      document.getElementById('police-distance').textContent = safetyData.policeDistance.toFixed(2) + ' km';
+      document.getElementById('open-places').textContent = safetyData.openPlacesCount + ' places';
+      document.getElementById('road-distance').textContent = safetyData.roadDistance.toFixed(2) + ' km';
+      document.getElementById('time-of-day').textContent = safetyData.timeOfDay === 'day' ? 'Day (6:00 AM - 6:00 PM)' : 'Night (6:00 PM - 6:00 AM)';
+      
+      // Function to animate progress circles
+      function animateProgress(id, target, textId, isScore = false) {
+        const circle = document.getElementById(id);
+        const text = document.getElementById(textId);
+        let current = 0;
+        const radius = 60;
+        const circumference = 2 * Math.PI * radius;
+        
+        const interval = setInterval(() => {
+          if (current >= target) {
+            clearInterval(interval);
+          } else {
+            current++;
+            const offset = circumference - (circumference * current / 100);
+            circle.style.strokeDashoffset = offset;
+            
+            if (isScore) {
+              text.textContent = `${Math.round(current / 10)}/10`;
+            } else {
+              text.textContent = `${current}%`;
+            }
+          }
+        }, 20);
+      }
+      
+      // Animate safety score (convert from 0-10 to 0-100 for the progress circle)
+      animateProgress("progress1", safetyData.safetyScore * 10, "text1", true);
+      
+      // Animate police proximity score
+      animateProgress("progress2", safetyData.policeProximityScore, "text2");
+      
+      // Back button event listener
+      document.getElementById('back-button').addEventListener('click', function() {
+        window.location.href = 'index.html';
+      });
+    });
+  </script>
+</body>
+</html>

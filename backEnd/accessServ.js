@@ -1,13 +1,12 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
-require('dotenv').config();
 
 // Global variable to store latitude and longitude
 let currentLocation = { latitude: null, longitude: null };
 
 // Google API key (you should use environment variables in production)
-const GOOGLE_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+const GOOGLE_API_KEY = 'AIzaSyC0JS_yiIRfQ_CVFFdiQsPxkkpTIxxA_5o';
 
 // Middleware to parse incoming JSON requests
 router.use(express.json());
@@ -207,7 +206,7 @@ router.get('/nearbyPharmacies', async (req, res) => {
       new Map(allHealthcareServices.map(service => [service.place_id, service])).values()
     );
     
-    // Calculate distance for each place and sort by distance
+    // Calculate distance for each place and sort by distancess
     const servicesWithDistance = uniqueHealthcareServices.map(service => {
       const distance = calculateDistance(
         currentLocation.latitude, 

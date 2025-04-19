@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Safe-Walk - Location Selection</title>
+  <link rel="stylesheet" href="styles.css">
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=&libraries=places"></script>
+</head>
+<body>
+  <div class="header">
+    <img src="./logo/logo.png" alt="Safe-Walk Logo" class="logo">
+    <div class="heading">Safe-Walk</div>
+  </div>
+
+  <div class="container">
+    <div class="info-text">
+      Select a location and time to check the safety score
+    </div>
+
+    <div class="selection-area">
+      <div class="map-container">
+        <div id="map"></div>
+      </div>
+
+      <div class="options-panel">
+        <h3>Location Details</h3>
+        <div class="input-group">
+          <label for="search-location">Search Location:</label>
+          <input type="text" id="search-location" placeholder="Enter address or place">
+        </div>
+
+        <div class="input-group">
+          <label for="selected-location">Selected Location:</label>
+          <input type="text" id="selected-location" readonly>
+          <input type="hidden" id="lat" name="lat">
+          <input type="hidden" id="lng" name="lng">
+        </div>
+
+        <div class="input-group">
+          <label for="time-select">Time of Day:</label>
+          <select id="time-select">
+            <option value="day">Day (6:00 AM - 6:00 PM)</option>
+            <option value="night">Night (6:00 PM - 6:00 AM)</option>
+          </select>
+        </div>
+
+        <button id="check-safety" class="primary-button">Check Safety Score</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
