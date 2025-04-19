@@ -6,7 +6,7 @@ const router = express.Router();
 let currentLocation = { latitude: null, longitude: null };
 
 // Google API key (you should use environment variables in production)
-const GOOGLE_API_KEY = 'AIzaSyC0JS_yiIRfQ_CVFFdiQsPxkkpTIxxA_5o';
+const GOOGLE_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
 // Middleware to parse incoming JSON requests
 router.use(express.json());

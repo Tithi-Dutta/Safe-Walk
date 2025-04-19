@@ -3,7 +3,7 @@ const axios = require('axios');
 const router = express.Router();
 
 // Google API key (use environment variables in production)
-const GOOGLE_API_KEY = process.env.GOOGLE_MAPS_API_KEY || 'AIzaSyC0JS_yiIRfQ_CVFFdiQsPxkkpTIxxA_5o';
+const GOOGLE_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
 // Default location to use when user location is not available
 const DEFAULT_LOCATION = { lat: 22.525870, lng: 88.334175 };
