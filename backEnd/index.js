@@ -6,6 +6,7 @@ const fs = require('fs');
 const https = require('https');
 const accessServ = require('./accessServ');
 const safetyRoutes = require('./safety');
+const sosService = require('./sosService');
 const authRoutes = require('./registrationAndLogin');
 const bodyParser = require('body-parser');
 const app = express();
@@ -32,6 +33,7 @@ app.get('/api/test', (req, res) => {
 // Routes
 app.use('/location', accessServ);
 app.use('/location', safetyRoutes);
+app.use('/sos', sosService); 
 app.use('/auth', authRoutes);  // Add the authentication routes
 
 // HTTPS server with more detailed error logging
