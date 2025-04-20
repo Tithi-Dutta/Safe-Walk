@@ -31,7 +31,7 @@ app.get('/api/test', (req, res) => {
 });
 
 // Routes
-app.use('/location', accessServ);
+// app.use('/location', accessServ);
 app.use('/location', safetyRoutes);
 app.use('/sos', sosService); 
 app.use('/auth', authRoutes);  // Add the authentication routes

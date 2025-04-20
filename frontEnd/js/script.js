@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const registerForm = document.getElementById('register-form');
 
     // API URL - use HTTPS
-    const API_URL = 'https://localhost:5000';
+    const API_URL = window.location.protocol + '//' + window.location.hostname + ':5000';
 
     // Add better error handling to the fetch requests
     fetch(`${API_URL}/api/test`, {
