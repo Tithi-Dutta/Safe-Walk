@@ -24,24 +24,20 @@
     <button onclick="requestLocationPermission()">Use My Location</button>
   </div>
 
-  <div class="navbar" id="navbar">
-    <button class="navbar-button" onclick="fetchNearbyPlacesWithContacts('Police Stations', this)">POLICE STATIONS</button>
-    <button class="navbar-button" onclick="fetchNearbyPlacesWithContacts('Stations', this)">TRANSIT STATIONS</button>
-    <button class="navbar-button" onclick="fetchNearbyPlacesWithContacts('Pharmacies', this)">PHARMACIES & HOSPITALS</button>
-    <button class="navbar-button" onclick="fetchNearbyPlacesWithContacts('Shops', this)">SHOPS</button>
-    <button class="navbar-button" onclick="fetchNearbyPlacesWithContacts('Restaurants', this)">RESTAURANTS</button>
+  <div class="filter-options">
+    <span>Filter by type: </span>
+    <button class="filter-button active" data-filter="all">ALL</button>
+    <button class="filter-button" data-filter="police">POLICE</button>
+    <button class="filter-button" data-filter="stations">STATIONS</button>
+    <button class="filter-button" data-filter="healthcare">HEALTHCARE</button>
+    <button class="filter-button" data-filter="shops">SHOPS</button>
+    <button class="filter-button" data-filter="restaurants">RESTAURANTS</button>
   </div>
 
   <div class="container">
-    <div class="sidebar" id="sidebar">
-      <button class="button" onclick="activateServices('Police Stations', this)">POLICE STATIONS</button>
-      <button class="button" onclick="activateServices('Stations', this)">TRANSIT STATIONS</button>
-      <button class="button" onclick="activateServices('Pharmacies', this)">PHARMACIES & HOSPITALS</button>
-      <button class="button" onclick="activateServices('Shops', this)">SHOPS</button>
-      <button class="button" onclick="activateServices('Restaurants', this)">RESTAURANTS</button>
+    <div class="consolidated-results" id="consolidatedResults">
+      <div class="loading">Loading nearby places with contact information...</div>
     </div>
-
-    <div class="results" id="results"></div>
 
     <div class="map" id="map"></div> 
   </div>
@@ -53,8 +49,9 @@
     let currentAddress = '';
     const defaultLocation = { lat: 22.525870, lng: 88.334175 }; // Default location (Kolkata)
     let markers = [];
-    let currentActiveService = null;
     let usingDefaultLocation = true;
+    let allPlaces = []; // Store all places in a single array
+    let currentFilter = 'all'; // Current filter type
     
     // Function to initialize the map
     function initMap() {
@@ -77,11 +74,34 @@
       // Get the address for the default location
       getAddressFromCoordinates(defaultLocation.lat, defaultLocation.lng);
       
-      // Initially load police stations for default location
-      activateServices('Police Stations', document.querySelector('.button'));
+      // Initially load all types of places for default location
+      fetchAllNearbyPlaces();
       
       // Try to get geolocation permission
       checkGeolocationPermission();
+
+      // Set up filter button event listeners
+      setupFilterButtons();
+    }
+
+    function setupFilterButtons() {
+      document.querySelectorAll('.filter-button').forEach(button => {
+        button.addEventListener('click', function() {
+          // Remove active class from all buttons
+          document.querySelectorAll('.filter-button').forEach(btn => {
+            btn.classList.remove('active');
+          });
+          
+          // Add active class to clicked button
+          this.classList.add('active');
+          
+          // Set current filter
+          currentFilter = this.getAttribute('data-filter');
+          
+          // Filter and display results
+          filterAndDisplayResults();
+        });
+      });
     }
     
     function checkGeolocationPermission() {
@@ -138,10 +158,8 @@
           // Update location status
           document.getElementById('locationStatus').innerHTML = '<span>Using your current location</span>';
           
-          // If we have an active service, update the results
-          if (currentActiveService) {
-            fetchNearbyPlacesWithContacts(currentActiveService.type, currentActiveService.element);
-          }
+          // Update places with new location
+          fetchAllNearbyPlaces();
         },
         function (error) {
           console.error("Error getting location:", error);
@@ -258,16 +276,116 @@
       addressElement.innerHTML = `<div>Current Address:</div> ${address}`;
     }
     
-    function activateServices(type, el) {
-      document.getElementById('sidebar').style.display = 'none';
-      document.getElementById('navbar').style.display = 'flex';
-      document.getElementById('results').style.display = 'flex';
-      document.getElementById('header').classList.add('shrink');
-      currentActiveService = { type: type, element: el };
-      fetchNearbyPlacesWithContacts(type, el);
+    // Function to fetch all types of nearby places
+    async function fetchAllNearbyPlaces() {
+      // Clear previous markers and places
+      clearMarkers();
+      allPlaces = [];
+      
+      const results = document.getElementById('consolidatedResults');
+      results.innerHTML = '<div class="loading">Loading nearby places with contact information...</div>';
+      
+      // Use current location if available, otherwise use default location
+      const lat = usingDefaultLocation ? defaultLocation.lat : (currentLocation.lat || defaultLocation.lat);
+      const lng = usingDefaultLocation ? defaultLocation.lng : (currentLocation.lng || defaultLocation.lng);
+      
+      // Define all place types to fetch
+      const placeTypes = [
+        { type: 'police', label: 'Police Stations', icon: 'fas fa-shield-alt' },
+        { type: 'stations', label: 'Transit Stations', icon: 'fas fa-subway' },
+        { type: 'healthcare', label: 'Healthcare', icon: 'fas fa-clinic-medical' },
+        { type: 'shops', label: 'Shops', icon: 'fas fa-shopping-cart' },
+        { type: 'restaurants', label: 'Restaurants', icon: 'fas fa-utensils' }
+      ];
+      
+      try {
+        // Fetch all types of places in parallel using Promise.all
+        const promises = placeTypes.map(async (placeType) => {
+          const response = await fetch(`https://192.168.20.211:5000/sos/nearby/${placeType.type}?lat=${lat}&lng=${lng}&radius=10000`);
+          const data = await response.json();
+          
+          if (data.success && data.places && data.places.length > 0) {
+            // Add type info to each place
+            data.places.forEach(place => {
+              place.placeType = placeType.type;
+              place.placeLabel = placeType.label;
+              place.placeIcon = placeType.icon;
+            });
+            
+            return data.places;
+          }
+          return [];
+        });
+        
+        // Wait for all requests to complete
+        const placesArrays = await Promise.all(promises);
+        
+        // Combine all places into a single array
+        placesArrays.forEach(places => {
+          allPlaces = allPlaces.concat(places);
+        });
+        
+        // Sort places by distance
+        allPlaces.sort((a, b) => a.distance - b.distance);
+        
+        // Display results
+        filterAndDisplayResults();
+        
+        // Add markers to the map
+        addMarkersToMap();
+        
+      } catch (error) {
+        console.error('Error fetching nearby places:', error);
+        results.innerHTML = `<div class="result-item">Error fetching nearby places. Please try again later.</div>`;
+      }
     }
-
-    // Function to send SMS
+    
+    // Function to filter and display results based on current filter
+    function filterAndDisplayResults() {
+      const results = document.getElementById('consolidatedResults');
+      results.innerHTML = '';
+      
+      // Filter places based on current filter
+      let filteredPlaces = allPlaces;
+      if (currentFilter !== 'all') {
+        filteredPlaces = allPlaces.filter(place => place.placeType === currentFilter);
+      }
+      
+      if (filteredPlaces.length > 0) {
+        filteredPlaces.forEach((place, index) => {
+          const resultItem = document.createElement('div');
+          resultItem.className = `result-item ${place.placeType}`;
+          resultItem.style.animationDelay = `${index * 0.05}s`;
+          
+          // Format the distance to 2 decimal places
+          const distanceKm = place.distance.toFixed(2);
+          
+          resultItem.innerHTML = `
+            <div class="result-icon"><i class="${place.placeIcon}"></i></div>
+            <div class="result-content">
+              <div class="result-header">
+                <h3>${place.name}</h3>
+                <span class="place-type">${place.placeLabel}</span>
+              </div>
+              <p>${place.vicinity || 'Address not available'}</p>
+              <p class="distance">${distanceKm} km away</p>
+              <p class="phone-number">Phone: ${place.phoneNumber}</p>
+              ${place.rating ? `<p>Rating: ${place.rating} ⭐ (${place.user_ratings_total || 0} reviews)</p>` : ''}
+              ${place.opening_hours && place.opening_hours.open_now ? '<p class="open-now">Currently Open</p>' : ''}
+              <button class="sms-button" onclick="sendSOS('${place.phoneNumber}', '${place.name}')">
+                <i class="fas fa-sms"></i> Send SOS SMS
+              </button>
+            </div>
+          `;
+          
+          results.appendChild(resultItem);
+        });
+      } else {
+        results.innerHTML = `<div class="result-item">No nearby places found matching the selected filter within 10km.</div>`;
+      }
+    }
+    
+    // Function to send SOS
     function sendSOS(phoneNumber, placeName) {
         // Use current location if available, otherwise use default location
         const lat = currentLocation.lat || defaultLocation.lat;
@@ -278,88 +396,26 @@
         console.log(`Sending SOS to ${placeName} (${phoneNumber})`);
         window.open(uri, '_blank');
     }
-
-    async function fetchNearbyPlacesWithContacts(type, el) {
-      // Clear previous markers
-      clearMarkers();
-      
-      // Clear previously active buttons
-      document.querySelectorAll('.button, .navbar-button').forEach(btn => btn.classList.remove('active-button'));
-      if (el) el.classList.add('active-button');
-      
-      const results = document.getElementById('results');
-      results.innerHTML = '<div class="loading">Loading nearby places with contact information...</div>';
-      
-      // Use current location if available, otherwise use default location
-      const lat = usingDefaultLocation ? defaultLocation.lat : (currentLocation.lat || defaultLocation.lat);
-      const lng = usingDefaultLocation ? defaultLocation.lng : (currentLocation.lng || defaultLocation.lng);
-      
-      let apiType;
-      switch(type) {
-        case 'Police Stations':
-          apiType = 'police';
-          break;
-        case 'Stations':
-          apiType = 'stations';
-          break;
-        case 'Pharmacies':
-          apiType = 'healthcare';
-          break;
-        case 'Shops':
-          apiType = 'shops';
-          break;
-        case 'Restaurants':
-          apiType = 'restaurants';
-          break;
-        default:
-          console.error('Unknown place type');
-          return;
-      }
-      
-      try {
-        // Call our SOS service endpoint with location parameters
-        const response = await fetch(`https://192.168.20.211:5000/sos/nearby/${apiType}?lat=${lat}&lng=${lng}&radius=10000`);
-        const data = await response.json();
-        
-        // Clear the loading message
-        results.innerHTML = '';
-        
-        if (data.success && data.places && data.places.length > 0) {
-          data.places.forEach(place => {
-            const resultItem = document.createElement('div');
-            resultItem.className = 'result-item';
-            
-            // Format the distance to 2 decimal places
-            const distanceKm = place.distance.toFixed(2);
-            
-            resultItem.innerHTML = `
-              <h3>${place.name}</h3>
-              <p>${place.vicinity || 'Address not available'}</p>
-              <p class="distance">${distanceKm} km away</p>
-              <p class="phone-number">Phone: ${place.phoneNumber}</p>
-              ${place.rating ? `<p>Rating: ${place.rating} ⭐ (${place.user_ratings_total || 0} reviews)</p>` : ''}
-              ${place.opening_hours && place.opening_hours.open_now ? '<p style="color: #e74c3c;">Currently Open</p>' : ''}
-              <button class="sms-button" onclick="sendSOS('${place.phoneNumber}', '${place.name}')">
-                <i class="fas fa-sms"></i> Send SOS SMS
-              </button>
-            `;
-            
-            results.appendChild(resultItem);
-            
-            // Add marker to the map
-            addMarker(place);
-          });
-        } else {
-          results.innerHTML = `<div class="result-item">No nearby ${type.toLowerCase()} with contact information found within 10km.</div>`;
-        }
-      } catch (error) {
-        console.error('Error fetching nearby places:', error);
-        results.innerHTML = `<div class="result-item">Error fetching nearby places. Please try again later.</div>`;
-      }
-  }
+    
+    // Function to add markers to the map
+    function addMarkersToMap() {
+      // Add markers for all places
+      allPlaces.forEach(place => {
+        addMarker(place);
+      });
+    }
     
     // Function to add a marker to the map
     function addMarker(place) {
+      // Define icon colors based on place type
+      const iconColors = {
+        police: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+        stations: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+        healthcare: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+        shops: 'http://maps.google.com/mapfiles/ms/icons/purple-dot.png',
+        restaurants: 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png'
+      };
+      
       const marker = new google.maps.Marker({
         position: { 
           lat: place.geometry.location.lat, 
@@ -367,7 +423,10 @@
         },
         map: map,
         title: place.name,
-        animation: google.maps.Animation.DROP
+        animation: google.maps.Animation.DROP,
+        icon: {
+          url: iconColors[place.placeType] || 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+        }
       });
       
       // Add info window to the marker
@@ -375,6 +434,7 @@
         content: `
           <div style="max-width: 200px; font-family: 'Montserrat', sans-serif;">
             <h3 style="margin: 0; padding: 5px 0; color: #333333;">${place.name}</h3>
+            <p style="margin: 5px 0; font-weight: bold;">${place.placeLabel}</p>
             <p style="margin: 5px 0;">${place.vicinity || 'Address not available'}</p>
             <p style="margin: 5px 0; font-weight: bold; color: #e74c3c;">${place.distance.toFixed(2)} km away</p>
             ${place.phoneNumber ? `<p style="margin: 5px 0; font-weight: bold;">Phone: ${place.phoneNumber}</p>` : ''}
