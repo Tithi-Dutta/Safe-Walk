@@ -1,5 +1,4 @@
 # SafeWalk 🚶‍♀️
-
 <div align="center">
 
 ![SafeWalk Banner](https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=32&duration=3000&pause=1000&color=FF6B9D&center=true&vCenter=true&width=600&lines=SafeWalk;Women's+Safety+Navigation;Navigate+with+Confidence)
